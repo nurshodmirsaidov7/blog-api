@@ -8,8 +8,13 @@ from typing import List
 router = APIRouter(prefix='/posts', tags=['Posts'])
 
 @router.get('/', response_model=List[schemas.PostResponse])
-async def get_posts(db: Session = Depends(get_db)):
-    posts = db.query(models.Post).all()
+async def get_posts(
+    db: Session = Depends(get_db),
+    skip: int = 0,
+    limit: int = 10
+    ):
+
+    posts = db.query(models.Post).offset(skip).limit(limit).all()
     return posts
 
 @router.get('/{post_id}', response_model=schemas.PostResponse)
