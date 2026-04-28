@@ -1,8 +1,14 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
+from dotenv import load_dotenv
+import os
 
-DATABASE_URL = 'postgresql://postgres:nurshoddeveloper7@localhost:5432/blogapi_db'
+load_dotenv()
+
+
+DATABASE_URL = os.getenv('DATABASE_URL')
+
 
 engine = create_engine(DATABASE_URL)
 
