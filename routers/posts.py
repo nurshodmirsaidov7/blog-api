@@ -1,9 +1,11 @@
-from fastapi import APIRouter, HTTPException, Depends, status
+from fastapi import APIRouter, HTTPException, Depends, status, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from database import get_db
 import models, schemas
 from auth import hash_password, verify_password, create_access_token, get_current_user
 from typing import List
+import uuid
+import os
 
 router = APIRouter(prefix='/posts', tags=['Posts'])
 
@@ -26,11 +28,28 @@ async def get_single_post(post_id: int, db: Session = Depends(get_db)):
     return post
 
 @router.post('/', response_model=schemas.PostResponse)
-async def create_post(post: schemas.PostCreate, user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def create_post(
+    title: str = Form(...),
+    content: str = Form(...), 
+    user: models.User = Depends(get_current_user), 
+    db: Session = Depends(get_db),
+    image: UploadFile = File(None)
+    
+):
+    image_path = None
+    if image:
+        ext = image.filename.split('.')[-1]
+        filename = f"{uuid.uuid4()}.{ext}"
+        file_location = f"uploads/{filename}"
+
+        with open(file_location, 'wb') as f:
+            f.write(await image.read())
+        image_path = file_location
+
     new_post = models.Post(
-        title = post.title,
-        content = post.content,
-        image = post.image,
+        title = title,
+        content = content,
+        image = image_path,
         author_id = user.id
     )
 
